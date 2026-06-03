@@ -119,4 +119,4 @@ evidence the practical criteria are marked on.
   deployment.
 - The charts use Chart.js, included locally in `static/` so they render even
   without an internet connection.
-- This project is sample coursework for BTEC Unit 6 and uses made-up data.
+
