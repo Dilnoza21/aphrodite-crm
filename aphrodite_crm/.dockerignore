@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+aphrodite.db
+server.log
+cookies.txt
+*.png
+shoot*.py
+shot_*.png
+mini.png
+venv/
+.git/
