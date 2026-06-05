@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/${{ secrets.EC2_USER }}/aphrodite-crm
+            cd /var/www/aphrodite-crm
             git pull origin main
             cd aphrodite_crm
             docker compose down
