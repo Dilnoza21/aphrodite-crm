@@ -19,15 +19,36 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Deploy app
             cd /var/www/aphrodite-crm
             git pull origin main
             cd aphrodite_crm
             docker compose down
             docker compose up -d --build
+
+            # Configure system nginx as reverse proxy to Flask on port 5000
+            sudo tee /etc/nginx/sites-available/aphrodite-crm > /dev/null <<'NGINXEOF'
+            server {
+                listen 80;
+                server_name _;
+                client_max_body_size 10M;
+                location / {
+                    proxy_pass         http://127.0.0.1:5000;
+                    proxy_set_header   Host              $host;
+                    proxy_set_header   X-Real-IP         $remote_addr;
+                    proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+                    proxy_set_header   X-Forwarded-Proto $scheme;
+                    proxy_read_timeout 60s;
+                }
+            }
+            NGINXEOF
+            sudo ln -sf /etc/nginx/sites-available/aphrodite-crm /etc/nginx/sites-enabled/aphrodite-crm
+            sudo rm -f /etc/nginx/sites-enabled/default
+            sudo nginx -t && sudo systemctl reload nginx
+
+            # Show status
             echo "=== Container status ==="
             docker compose ps
-            echo "=== Web container logs (last 30 lines) ==="
-            docker compose logs --tail=30 web
-            echo "=== Nginx container logs (last 10 lines) ==="
-            docker compose logs --tail=10 nginx
+            echo "=== Web logs ==="
+            docker compose logs --tail=20 web
             echo "Deployed at $(date)"
