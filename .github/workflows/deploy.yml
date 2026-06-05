@@ -24,4 +24,10 @@ jobs:
             cd aphrodite_crm
             docker compose down
             docker compose up -d --build
-            echo "Deployed successfully at $(date)"
+            echo "=== Container status ==="
+            docker compose ps
+            echo "=== Web container logs (last 30 lines) ==="
+            docker compose logs --tail=30 web
+            echo "=== Nginx container logs (last 10 lines) ==="
+            docker compose logs --tail=10 nginx
+            echo "Deployed at $(date)"
