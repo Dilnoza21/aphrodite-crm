@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -188,7 +188,7 @@ td.actions{white-space:nowrap;text-align:right}
 
 <div class="main">
   <div class="topbar">
-    <div class="search"><span class="si">⌕</span><input placeholder="Search customers, orders, products…"></div>
+    <div class="search"><span class="si">⌕</span><input id="searchInput" placeholder="Search customers, orders, products…" oninput="filterView()"></div>
     <span class="date" id="today"></span>
     <div class="tb-ic">⚙</div>
     <div class="tb-ic">🔔<span class="nb"></span></div>
@@ -229,6 +229,13 @@ const NAV=[
   {t:"Notifications",k:"notifications",i:"M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9zM13.7 21a2 2 0 0 1-3.4 0",d:"3"},
   {t:"Settings",k:"settings",i:"M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm8-3a8 8 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a8 8 0 0 0-1.7-1L15.5 2h-4l-.4 2.6a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L4.6 11a8 8 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a8 8 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8 8 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6a8 8 0 0 0 .1-1z"},
 ];
+
+const ROLE_NAV = {
+  "Super Admin": ["dashboard","customers","leads","orders","support","products","inventory","suppliers","employees","analytics","reports","notifications","settings"],
+  "Admin": ["dashboard","customers","leads","orders","products","inventory","suppliers","support","analytics","reports"]
+};
+let USER_NAME = "Aphrodite Admin";
+let USER_ROLE = "Admin";
 
 /* ---------- demo fallback data (used when API is unavailable, e.g. static preview) ---------- */
 const DEMO={
@@ -310,7 +317,7 @@ const avc=s=>avColors[s.charCodeAt(0)%avColors.length];
 const stClass=s=>'st-'+(s||'').split(' ')[0].replace('&','');
 
 /* ---------- CRUD ---------- */
-let CURRENT={entity:null,rows:[]};
+let CURRENT={entity:null,rows:[],allRows:[],rowFn:null};
 const FORMS={
   customers:[["name","Name"],["company","Company"],["email","Email"],["phone","Phone"],["city","City"],["country","Country"],["status","Status","select",["Active","VIP","New","Inactive"]]],
   leads:[["name","Name"],["company","Company"],["email","Email"],["phone","Phone"],["stage","Stage","select",["New","Contacted","Negotiation","Won","Lost"]],["value","Value ($)","number"],["source","Source"]],
@@ -320,8 +327,9 @@ const FORMS={
   support:[["customer","Customer"],["subject","Subject"],["priority","Priority","select",["Low","Medium","High"]],["status","Status","select",["Open","In Progress","Resolved","Closed"]]],
 };
 const SINGULAR={customers:"Customer",leads:"Lead",products:"Product",suppliers:"Supplier",employees:"Employee",support:"Ticket"};
-const addBtn=e=>FORMS[e]?`<button class="btn-add" onclick="openForm('${e}')">+ Add ${SINGULAR[e]}</button>`:'<span class="pill">Live data</span>';
-const rowActions=(e,id)=>FORMS[e]?`<td class="actions"><button class="act-e" title="Edit" onclick="openForm('${e}',${id})">✎</button><button class="act-d" title="Delete" onclick="delRow('${e}',${id})">🗑</button></td>`:'';
+const canCRUD=e=>FORMS[e]&&(USER_ROLE==='Super Admin'||e!=='employees');
+const addBtn=e=>canCRUD(e)?`<button class="btn-add" onclick="openForm('${e}')">+ Add ${SINGULAR[e]}</button>`:'<span class="pill">Live data</span>';
+const rowActions=(e,id)=>canCRUD(e)?`<td class="actions"><button class="act-e" title="Edit" onclick="openForm('${e}',${id})">✎</button><button class="act-d" title="Delete" onclick="delRow('${e}',${id})">🗑</button></td>`:'';
 
 function openForm(entity,id){
   const rec=id?CURRENT.rows.find(r=>r.id===id):{};
@@ -340,29 +348,50 @@ function closeForm(){document.getElementById('crudModal').classList.remove('show
 async function saveForm(){
   const entity=document.getElementById('formEntity').value, id=document.getElementById('formId').value, data={};
   document.querySelectorAll('#formBody [data-k]').forEach(el=>data[el.dataset.k]=el.value);
+  const errEl=document.getElementById('crudErr');
+  errEl.textContent='';
   try{
     const r=await fetch('/api/'+entity+(id?'/'+id:''),{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    if(!r.ok)throw 0;
+    if(!r.ok){
+      let msg='Could not save.';
+      try{const j=await r.json();msg=j.error||msg;}catch(_){}
+      if(r.status===401)msg='Session expired — please refresh and log in again.';
+      if(r.status===403)msg='Permission denied for this action.';
+      throw new Error(msg);
+    }
     closeForm(); render(current);
-  }catch(e){document.getElementById('crudErr').textContent='Could not save — make sure the server is running.';}
+  }catch(e){errEl.textContent=e.message||'Could not save — check your connection.';}
 }
 async function delRow(entity,id){
   if(!confirm('Delete this '+SINGULAR[entity].toLowerCase()+'?'))return;
-  try{await fetch('/api/'+entity+'/'+id,{method:'DELETE'});render(current);}
-  catch(e){alert('Could not delete — is the server running?');}
+  try{
+    const r=await fetch('/api/'+entity+'/'+id,{method:'DELETE'});
+    if(!r.ok)throw new Error('Delete failed');
+    render(current);
+  }catch(e){alert(e.message||'Could not delete — is the server running?');}
 }
 
 /* ---------- render nav ---------- */
 let current='dashboard';
 function buildNav(){
-  document.getElementById('nav').innerHTML=NAV.map(n=>{
+  const allowed = ROLE_NAV[USER_ROLE] || [];
+  const navItems = [];
+  let pendingGroup = null;
+  for(const n of NAV){
+    if(n.g){ pendingGroup = n; continue; }
+    if(!n.k || allowed.includes(n.k)){
+      if(pendingGroup){ navItems.push(pendingGroup); pendingGroup = null; }
+      navItems.push(n);
+    }
+  }
+  document.getElementById('nav').innerHTML=navItems.map(n=>{
     if(n.g)return `<div class="grp">${n.g}</div>`;
     return `<div class="item${n.k===current?' active':''}" onclick="go('${n.k}')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${n.i}"/></svg>
       <span>${n.t}</span>${n.d?`<span class="dot">${n.d}</span>`:''}</div>`;
   }).join('');
 }
-function go(k){current=k;buildNav();render(k);window.scrollTo(0,0);}
+function go(k){current=k;buildNav();const si=document.getElementById('searchInput');if(si)si.value='';render(k);window.scrollTo(0,0);}
 
 /* ---------- views ---------- */
 let charts=[];
@@ -415,13 +444,23 @@ function renderDashboard(C){
   api('dashboard').then(d=>{
     const k=d.kpi;
     C.innerHTML=`
-    <div class="page-head"><h1>Hello, Admin 👋</h1><p>Here's what's happening at Aphrodite Dress this month.</p></div>
+    <div class="page-head"><h1>Hello, ${USER_ROLE} 👋</h1><p>Here's what's happening at Aphrodite Dress this month.</p></div>
     <div class="kpis">
       <div class="kpi feature"><div class="lbl"><span class="ic">$</span>Total Revenue</div><div class="val">${money(k.revenue)}</div><div class="chg up">↑ 12.4% vs last month</div></div>
       <div class="kpi"><div class="lbl"><span class="ic">📦</span>Total Orders</div><div class="val">${k.orders}</div><div class="chg up">↑ 7.2%</div></div>
       <div class="kpi"><div class="lbl"><span class="ic">♥</span>Customers</div><div class="val">${k.customers}</div><div class="chg up">↑ 5.4%</div></div>
       <div class="kpi"><div class="lbl"><span class="ic">🚚</span>Pending Deliveries</div><div class="val">${k.pending}</div><div class="chg down">↓ 2.1%</div></div>
     </div>
+    ${USER_ROLE === 'Super Admin' && d.profit_loss ? `
+      <div class="row r-2">
+        <div class="box"><div class="box-h"><h3>${d.profit_loss.label}</h3><span class="pill">Revenue minus cost</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div>
+            <div style="font-size:24px;font-weight:800;">${money(d.profit_loss.profit)}</div>
+            <div style="color:var(--muted);font-size:13px;">Cost: ${money(d.profit_loss.cost)}</div>
+          </div><div style="font-size:32px;color:${d.profit_loss.profit>=0?'#16a34a':'#dc2626'};">${d.profit_loss.profit>=0? '✔' : '⚠'}</div></div>
+        </div>
+      </div>
+    ` : ''}
     <div class="row r-2">
       <div class="box"><div class="box-h"><h3>Revenue Overview</h3><span class="pill">This month vs last</span></div><canvas id="cRev" height="120"></canvas></div>
       <div class="box"><div class="box-h"><h3>Sales by Category</h3></div><canvas id="cCat" height="180"></canvas></div>
@@ -448,30 +487,36 @@ function drawCat(c){
 }
 
 function renderTable(C,entity,title,sub,data,cols,rowFn){
-  CURRENT={entity,rows:data};
-  const crud=!!FORMS[entity];
+  CURRENT={entity,rows:data,allRows:data,rowFn};
+  const crud=canCRUD(entity);
   C.innerHTML=`<div class="page-head"><h1>${title}</h1><p>${sub}</p></div>
-  <div class="box"><div class="box-h"><h3>${data.length} ${title.toLowerCase()}</h3>${addBtn(entity)}</div>
+  <div class="box"><div class="box-h"><h3 id="rowCount">${data.length} ${title.toLowerCase()}</h3>${addBtn(entity)}</div>
   <div style="overflow-x:auto"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}${crud?'<th></th>':''}</tr></thead>
-  <tbody>${data.map(r=>`<tr>${rowFn(r)}${rowActions(entity,r.id)}</tr>`).join('')}</tbody></table></div></div>`;
+  <tbody id="tableBody">${data.map(r=>`<tr>${rowFn(r)}${rowActions(entity,r.id)}</tr>`).join('')}</tbody></table></div></div>`;
 }
 
-function renderLeads(C,leads){
-  CURRENT={entity:'leads',rows:leads};
+function buildPipe(leads){
   const stages=["New","Contacted","Negotiation","Won","Lost"];
-  C.innerHTML=`<div class="page-head pf"><div><h1>Leads &amp; Sales</h1><p>Your sales pipeline at a glance.</p></div>${addBtn('leads')}</div>
-  <div class="pipe">${stages.map(s=>{const items=leads.filter(l=>l.stage===s);
+  return stages.map(s=>{const items=leads.filter(l=>l.stage===s);
     return `<div class="col"><h4>${s}<span>${items.length}</span></h4>
-    ${items.map(l=>`<div class="lead-c"><div class="lead-acts"><button class="act-e" onclick="openForm('leads',${l.id})">✎</button><button class="act-d" onclick="delRow('leads',${l.id})">🗑</button></div><b>${l.company}</b><small>${l.name} · ${l.source}</small><div class="v">${money(l.value)}</div></div>`).join('')||'<div class="empty" style="padding:10px;font-size:12px">—</div>'}</div>`;
-  }).join('')}</div>`;
+    ${items.map(l=>`<div class="lead-c">${canCRUD('leads')?`<div class="lead-acts"><button class="act-e" onclick="openForm('leads',${l.id})">✎</button><button class="act-d" onclick="delRow('leads',${l.id})">🗑</button></div>`:''}<b>${l.company}</b><small>${l.name} · ${l.source}</small><div class="v">${money(l.value)}</div></div>`).join('')||'<div class="empty" style="padding:10px;font-size:12px">—</div>'}</div>`;
+  }).join('');
+}
+function renderLeads(C,leads){
+  CURRENT={entity:'leads',rows:leads,allRows:leads,rowFn:null};
+  C.innerHTML=`<div class="page-head pf"><div><h1>Leads &amp; Sales</h1><p>Your sales pipeline at a glance.</p></div>${addBtn('leads')}</div>
+  <div class="pipe" id="pipeBody">${buildPipe(leads)}</div>`;
 }
 
+function buildPcards(p){
+  return p.map(x=>`<div class="pcard"><div class="top" style="background:${x.accent}"><span class="cat">${x.category}</span>
+  ${canCRUD('products')?`<div class="card-acts"><button class="act-e" onclick="openForm('products',${x.id})">✎</button><button class="act-d" onclick="delRow('products',${x.id})">🗑</button></div>`:''}
+  </div><div class="bot"><b>${x.name}</b><div class="meta"><span class="price">${money(x.price)}</span><span class="stock">★ ${x.rating} · ${x.units_sold} sold</span></div></div></div>`).join('');
+}
 function renderProducts(C,p){
-  CURRENT={entity:'products',rows:p};
+  CURRENT={entity:'products',rows:p,allRows:p,rowFn:null};
   C.innerHTML=`<div class="page-head pf"><div><h1>Products</h1><p>The Aphrodite Dress collection.</p></div>${addBtn('products')}</div>
-  <div class="pgrid">${p.map(x=>`<div class="pcard"><div class="top" style="background:${x.accent}"><span class="cat">${x.category}</span>
-  <div class="card-acts"><button class="act-e" onclick="openForm('products',${x.id})">✎</button><button class="act-d" onclick="delRow('products',${x.id})">🗑</button></div></div>
-  <div class="bot"><b>${x.name}</b><div class="meta"><span class="price">${money(x.price)}</span><span class="stock">★ ${x.rating} · ${x.units_sold} sold</span></div></div></div>`).join('')}</div>`;
+  <div class="pgrid" id="pgridBody">${buildPcards(p)}</div>`;
 }
 
 function renderAnalytics(C,d){
@@ -507,17 +552,42 @@ function renderNotifications(C,n){
 function renderSettings(C){
   C.innerHTML=`<div class="page-head"><h1>Settings</h1><p>Manage your account & system preferences.</p></div>
   <div class="row r-2"><div class="box"><div class="box-h"><h3>Profile</h3></div>
-    <div class="field-row" style="display:flex;align-items:center;gap:16px;margin-bottom:18px"><div class="av" style="width:60px;height:60px;border-radius:50%;background:var(--grad2);display:grid;place-items:center;color:#fff;font-weight:800;font-size:22px">A</div><div><b>Aphrodite Admin</b><div style="color:var(--muted);font-size:13px">admin@aphrodite.com · Admin</div></div></div>
+    <div class="field-row" style="display:flex;align-items:center;gap:16px;margin-bottom:18px"><div class="av" style="width:60px;height:60px;border-radius:50%;background:var(--grad2);display:grid;place-items:center;color:#fff;font-weight:800;font-size:22px">${initials(USER_NAME)}</div><div><b>${USER_NAME}</b><div style="color:var(--muted);font-size:13px">${USER_ROLE}</div></div></div>
     <p style="color:var(--muted);font-size:13px">Profile, password, security, theme and backup settings would be configured here.</p></div>
   <div class="box"><div class="box-h"><h3>Preferences</h3></div>
     ${["Email notifications","Low-stock alerts","Weekly reports","Two-factor authentication"].map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)"><span style="font-size:14px;font-weight:600">${s}</span><span class="st st-Delivered">On</span></div>`).join('')}</div></div>`;
 }
 
-async function logout(){try{await fetch('/api/logout',{method:'POST'});}catch(e){}location.href=(location.protocol==='file:'?'index.html':'/');}
+async function logout(){try{await fetch('/api/logout',{method:'POST'});}catch(e){}localStorage.removeItem('demoAuth');location.href=(location.protocol==='file:'?'index.html':'/');}
+
+/* ---------- search / filter ---------- */
+function filterView(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase().trim();
+  if(!CURRENT.allRows) return;
+  const filtered=q?CURRENT.allRows.filter(r=>Object.values(r).some(v=>v!=null&&String(v).toLowerCase().includes(q))):CURRENT.allRows;
+  CURRENT.rows=filtered;
+  // table views
+  const tbody=document.getElementById('tableBody');
+  if(tbody&&CURRENT.rowFn){
+    tbody.innerHTML=filtered.map(r=>`<tr>${CURRENT.rowFn(r)}${rowActions(CURRENT.entity,r.id)}</tr>`).join('');
+    const cnt=document.getElementById('rowCount');
+    if(cnt)cnt.textContent=filtered.length+' '+CURRENT.entity;
+    return;
+  }
+  // leads kanban
+  const pipe=document.getElementById('pipeBody');
+  if(pipe){pipe.innerHTML=buildPipe(filtered);return;}
+  // products grid
+  const pgrid=document.getElementById('pgridBody');
+  if(pgrid)pgrid.innerHTML=buildPcards(filtered);
+}
 
 /* ---------- init ---------- */
 document.getElementById('today').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
-api('me').then(m=>{if(m&&m.name){document.getElementById('uName').textContent=m.name;document.getElementById('uRole').textContent=m.role;document.getElementById('uAv').textContent=initials(m.name);}});
+function setUser(m){ if(!m||!m.name) return; USER_NAME=m.name; USER_ROLE=m.role||USER_ROLE; document.getElementById('uName').textContent=m.name; document.getElementById('uRole').textContent=USER_ROLE; document.getElementById('uAv').textContent=initials(m.name); localStorage.setItem('demoAuth', JSON.stringify({name:m.name,role:USER_ROLE})); if(document.getElementById('nav')) buildNav(); }
+const demoAuth = localStorage.getItem('demoAuth');
+if(demoAuth){ setUser(JSON.parse(demoAuth)); }
+api('me').then(m=>{ if(m&&m.name){ setUser(m); }}).catch(()=>{});
 buildNav();render('dashboard');
 </script>
 </body>

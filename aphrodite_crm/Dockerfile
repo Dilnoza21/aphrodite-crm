@@ -17,5 +17,5 @@ RUN python seed_db.py
 # The app listens on port 5000
 EXPOSE 5000
 
-# Start the server
-CMD ["python", "app.py"]
+# Start the server with gunicorn (production WSGI server)
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "60", "app:app"]

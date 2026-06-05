@@ -1,315 +1,84 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aphrodite Dress — so everyone falls in love</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{
-  --rose:#F43F5E; --pink:#EC4899; --violet:#8B5CF6; --purple:#A855F7; --deep:#7C2D5E;
-  --ink:#2A1622; --muted:#8A7480; --cream:#FFF7FB; --line:rgba(124,45,94,.12);
-  --grad:linear-gradient(120deg,#F43F5E 0%,#EC4899 38%,#A855F7 72%,#8B5CF6 100%);
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:'Manrope',sans-serif;color:var(--ink);background:var(--cream);overflow-x:hidden}
-.serif{font-family:'Cormorant Garamond',serif}
-a{text-decoration:none;color:inherit}
-img{max-width:100%}
-
-/* animated mesh background */
-.mesh{position:fixed;inset:0;z-index:-2;background:
-  radial-gradient(40% 50% at 15% 20%,rgba(244,63,94,.18),transparent 60%),
-  radial-gradient(45% 55% at 85% 15%,rgba(168,85,247,.20),transparent 60%),
-  radial-gradient(50% 60% at 70% 85%,rgba(236,72,153,.16),transparent 60%),
-  radial-gradient(40% 50% at 25% 90%,rgba(139,92,246,.16),transparent 60%);
-  animation:drift 22s ease-in-out infinite alternate}
-@keyframes drift{to{transform:scale(1.15) translate(2%,-2%)}}
-.grain{position:fixed;inset:0;z-index:-1;opacity:.04;pointer-events:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-
-/* top bar */
-.announce{background:var(--ink);color:#fff;text-align:center;font-size:12px;letter-spacing:.14em;
-  text-transform:uppercase;padding:9px;font-weight:500}
-.announce span{display:inline-block;animation:pulse 3s ease-in-out infinite}
-@keyframes pulse{50%{opacity:.6}}
-
-nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
-  padding:18px 6vw;background:rgba(255,247,251,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.logo{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;letter-spacing:.01em;
-  display:flex;align-items:center;gap:10px}
-.logo .mark{width:34px;height:34px;border-radius:50%;background:var(--grad);display:grid;place-items:center;
-  color:#fff;font-size:19px;box-shadow:0 6px 18px rgba(236,72,153,.4)}
-.logo i{font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.menu{display:flex;gap:34px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
-.menu a{position:relative;padding:4px 0;color:#5a4350;transition:color .25s}
-.menu a::after{content:"";position:absolute;left:0;bottom:-2px;width:0;height:2px;background:var(--grad);transition:width .3s}
-.menu a:hover{color:var(--ink)}.menu a:hover::after{width:100%}
-.nav-actions{display:flex;align-items:center;gap:18px}
-.signin{border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.06em;
-  text-transform:uppercase;color:#fff;background:var(--grad);padding:11px 24px;border-radius:40px;
-  box-shadow:0 8px 22px rgba(236,72,153,.34);transition:transform .25s,box-shadow .25s;background-size:160%}
-.signin:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(168,85,247,.45);background-position:right}
-
-/* hero */
-.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center;padding:7vh 6vw 9vh;position:relative}
-.kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.2em;
-  text-transform:uppercase;color:var(--rose);margin-bottom:22px}
-.kicker::before{content:"";width:32px;height:1px;background:var(--rose)}
-.hero h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(54px,7.6vw,108px);
-  line-height:.92;letter-spacing:-.01em}
-.hero h1 em{font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p{max-width:430px;color:#6b5460;font-size:17px;line-height:1.65;margin:26px 0 34px}
-.cta{display:flex;gap:14px;flex-wrap:wrap}
-.btn{cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
-  padding:16px 30px;border-radius:44px;border:none;transition:transform .25s,box-shadow .25s}
-.btn-primary{color:#fff;background:var(--ink);box-shadow:0 10px 26px rgba(42,22,34,.3)}
-.btn-primary:hover{transform:translateY(-3px)}
-.btn-ghost{background:transparent;border:1.5px solid var(--ink);color:var(--ink)}
-.btn-ghost:hover{background:var(--ink);color:#fff}
-
-/* hero visual */
-.visual{position:relative;height:560px}
-.card-img{position:absolute;border-radius:24px;overflow:hidden;box-shadow:0 30px 70px rgba(124,45,94,.28)}
-.c1{inset:0 18% 22% 0;background:url('https://i.pinimg.com/736x/ee/e2/80/eee280f6818870be0f5212d4f45e551a.jpg') center/cover no-repeat,linear-gradient(160deg,#FBCFE8,#E9A8D6 40%,#C084FC);animation:float1 7s ease-in-out infinite}
-.c2{width:46%;height:54%;right:0;top:10%;background:url('https://i.pinimg.com/control1/1200x/47/53/ee/4753ee24512fbc283640b1d3659c446a.jpg') center/cover no-repeat,linear-gradient(160deg,#FDA4AF,#F472B6 50%,#A855F7);animation:float2 8s ease-in-out infinite}
-.c3{width:38%;height:32%;right:9%;bottom:4%;background:url('https://i.pinimg.com/1200x/62/4f/a4/624fa42968693f66a579739be5691be7.jpg') center/cover no-repeat,linear-gradient(160deg,#DDD6FE,#C4B5FD,#F9A8D4);animation:float1 9s ease-in-out infinite}
-.card-img::after{content:"";position:absolute;inset:0;opacity:.5;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='2' cy='2' r='1' fill='white' opacity='.25'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23p)'/%3E%3C/svg%3E")}
-@keyframes float1{50%{transform:translateY(-16px)}}
-@keyframes float2{50%{transform:translateY(14px)}}
-.badge{position:absolute;z-index:3;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-radius:18px;
-  padding:14px 18px;box-shadow:0 14px 34px rgba(124,45,94,.2);font-size:13px}
-.badge .serif{font-size:22px;font-weight:600;display:block}
-.b-love{left:-3%;top:18%;animation:float2 6s ease-in-out infinite}
-.b-new{right:2%;bottom:30%;animation:float1 7s ease-in-out infinite}
-.heart{color:var(--rose)}
-
-/* features */
-.features{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
-  margin:0 6vw;border-radius:20px;overflow:hidden;border:1px solid var(--line)}
-.feat{background:rgba(255,255,255,.7);padding:24px 26px;display:flex;align-items:center;gap:14px}
-.feat .ic{font-size:22px}.feat b{display:block;font-size:14px}.feat small{color:var(--muted);font-size:12px}
-
-/* sections */
-section.block{padding:9vh 6vw}
-.head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:42px}
-.head h2{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,4.5vw,56px);font-weight:600;line-height:1}
-.head p{color:var(--muted);margin-top:8px}
-.viewall{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--deep);
-  display:inline-flex;align-items:center;gap:8px}
-
-/* categories */
-.cats{display:grid;grid-template-columns:repeat(5,1fr);gap:22px}
-.cat{text-align:center;cursor:pointer}
-.cat .circle{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;color:#fff;font-family:'Cormorant Garamond',serif;
-  font-size:24px;font-weight:600;box-shadow:0 16px 40px rgba(124,45,94,.18);transition:transform .35s}
-.cat:hover .circle{transform:translateY(-8px) scale(1.03)}
-.cat b{display:block;margin-top:14px;font-size:14px;letter-spacing:.04em}
-
-/* product grid */
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
-.prod{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(124,45,94,.08);
-  transition:transform .35s,box-shadow .35s;cursor:pointer}
-.prod:hover{transform:translateY(-8px);box-shadow:0 24px 50px rgba(124,45,94,.18)}
-.prod .ph{height:230px;position:relative;display:grid;place-items:center;color:rgba(255,255,255,.85);font-size:40px}
-.prod .tag{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.92);color:var(--deep);font-size:10px;
-  font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:30px}
-.prod .like{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);
-  display:grid;place-items:center;color:var(--muted);transition:color .2s}
-.prod:hover .like{color:var(--rose)}
-.prod .info{padding:16px 18px 20px}
-.prod .info b{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;display:block}
-.prod .info .cat-l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
-.prod .price{margin-top:10px;font-weight:800;font-size:16px;color:var(--deep)}
-
-/* promo */
-.promos{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.promo{border-radius:22px;padding:46px;color:#fff;position:relative;overflow:hidden;min-height:230px;display:flex;
-  flex-direction:column;justify-content:center}
-.promo.p1{background:linear-gradient(135deg,#F43F5E,#A855F7)}
-.promo.p2{background:linear-gradient(135deg,#8B5CF6,#EC4899)}
-.promo h3{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;line-height:1.02}
-.promo p{opacity:.92;margin:12px 0 22px;max-width:300px}
-.promo .btn{align-self:flex-start;background:#fff;color:var(--ink)}
-
-/* footer */
-footer{background:var(--ink);color:#fff;padding:7vh 6vw 4vh;margin-top:5vh}
-.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:30px;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.12)}
-.f-brand .serif{font-size:40px}.f-brand i{font-style:italic;color:var(--pink)}
-.f-brand p{color:#b69fab;margin-top:10px;max-width:300px}
-.values{display:flex;gap:46px;flex-wrap:wrap}
-.values div b{display:block;font-size:14px}.values div small{color:#b69fab}
-.copy{padding-top:26px;color:#8a7480;font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
-
-/* login modal */
-.overlay{position:fixed;inset:0;z-index:100;background:rgba(42,22,34,.55);backdrop-filter:blur(6px);
-  display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .3s}
-.overlay.show{display:flex;opacity:1}
-.modal{background:#fff;width:min(420px,92vw);border-radius:26px;padding:40px;box-shadow:0 40px 90px rgba(0,0,0,.35);
-  transform:translateY(20px) scale(.97);transition:transform .35s}
-.overlay.show .modal{transform:none}
-.modal .mark{width:54px;height:54px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;
-  font-size:28px;font-family:'Cormorant Garamond',serif;margin:0 auto 16px;box-shadow:0 10px 26px rgba(236,72,153,.4)}
-.modal h3{text-align:center;font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600}
-.modal .sub{text-align:center;color:var(--muted);font-size:14px;margin:6px 0 26px}
-.field{margin-bottom:16px}
-.field label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b5460;display:block;margin-bottom:7px}
-.field input{width:100%;padding:14px 16px;border:1.5px solid var(--line);border-radius:13px;font-family:inherit;font-size:15px;
-  transition:border-color .2s,box-shadow .2s;background:#fffafd}
-.field input:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 4px rgba(236,72,153,.12)}
-.modal .btn-primary{width:100%;background:var(--grad);margin-top:8px;background-size:160%;transition:background-position .4s,transform .2s}
-.modal .btn-primary:hover{background-position:right;transform:translateY(-2px)}
-.hint{text-align:center;font-size:12px;color:var(--muted);margin-top:16px;padding:10px;background:#fff4f9;border-radius:10px}
-.hint code{background:#fff;padding:2px 7px;border-radius:6px;color:var(--deep);font-weight:700}
-.err{color:var(--rose);font-size:13px;text-align:center;min-height:18px;margin-top:8px;font-weight:600}
-.close-x{position:absolute;top:18px;right:22px;font-size:22px;color:var(--muted);cursor:pointer;background:none;border:none}
-
-/* reveal */
-.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
-.reveal.in{opacity:1;transform:none}
-
-@media(max-width:900px){
-  .hero{grid-template-columns:1fr}.visual{height:360px}
-  .menu,.features{display:none}.cats{grid-template-columns:repeat(3,1fr)}
-  .grid{grid-template-columns:repeat(2,1fr)}.promos{grid-template-columns:1fr}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aphrodite Dress CRM Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --rose: #F43F5E;
+      --pink: #EC4899;
+      --ink: #2A1622;
+      --muted: #6B5460;
+      --bg: #FBF2F7;
+      --card: #FFFFFF;
+      --line: rgba(124,45,94,.12);
+      --grad: linear-gradient(130deg,#F43F5E,#EC4899 45%,#A855F7);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; font-family: 'Manrope', sans-serif; color: var(--ink); background: radial-gradient(circle at top left, rgba(244,63,94,.18), transparent 28%), radial-gradient(circle at bottom right, rgba(168,85,247,.16), transparent 32%), var(--bg); display: grid; place-items: center; padding: 24px; }
+    .container { width: min(520px,100%); background: rgba(255,255,255,.95); border-radius: 28px; box-shadow: 0 32px 90px rgba(124,45,94,.12); overflow: hidden; }
+    .hero { padding: 42px 40px 30px; background: #fff; border-bottom: 1px solid var(--line); }
+    .brand { display: inline-flex; align-items: center; gap: 12px; font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; }
+    .brand .mark { width: 44px; height: 44px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; color: #fff; font-size: 20px; }
+    h1 { margin-top: 18px; font-size: clamp(32px,4vw,46px); line-height: 1.05; }
+    p.lead { margin-top: 14px; color: var(--muted); line-height: 1.7; font-size: 15px; }
+    form { padding: 30px 40px 42px; display: grid; gap: 20px; }
+    .field { display: grid; gap: 8px; }
+    label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+    input { width: 100%; border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 16px; font: inherit; font-size: 15px; background: #fff; transition: border-color .2s, box-shadow .2s; }
+    input:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 4px rgba(236,72,153,.12); }
+    button { width: 100%; border: none; border-radius: 14px; background: var(--grad); color: #fff; font: inherit; font-weight: 700; font-size: 14px; padding: 16px 18px; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+    button:hover { transform: translateY(-1px); box-shadow: 0 16px 30px rgba(236,72,153,.18); }
+    .info { display: grid; gap: 10px; font-size: 14px; color: var(--muted); }
+    .info code { background: #f7edf4; padding: 4px 8px; border-radius: 8px; font-size: 13px; }
+    .hint { padding: 18px 22px; border-radius: 18px; background: #fff4f9; border: 1px solid rgba(244,63,94,.12); color: #7c3aed; line-height: 1.6; }
+    .err { min-height: 20px; color: var(--rose); font-weight: 700; font-size: 13px; text-align: center; }
+  </style>
 </head>
 <body>
-<div class="mesh"></div><div class="grain"></div>
-
-<div class="announce"><span>✦ Free worldwide shipping on wholesale orders over $750 &nbsp;·&nbsp; New Summer Collection now live ✦</span></div>
-
-<nav>
-  <div class="logo"><span class="mark serif">A</span>Aphrodite<i>&nbsp;Dress</i></div>
-  <div class="menu">
-    <a href="#new">New In</a><a href="#cats">Dresses</a><a href="#cats">Evening</a>
-    <a href="#cats">Wedding</a><a href="#cats">Luxury</a><a href="#promo">Sale</a>
-  </div>
-  <div class="nav-actions">
-    <button class="signin" onclick="openLogin()">Sign In</button>
-  </div>
-</nav>
-
-<header class="hero">
-  <div class="reveal in">
-    <span class="kicker">Aphrodite Dress · Wholesale Couture</span>
-    <h1>Fall in<br><em>love</em> with<br>every thread</h1>
-    <p>Timeless dresses, crafted to be adored. Aphrodite Dress brings boutiques the pieces their customers can't resist — designed so everyone falls in love.</p>
-    <div class="cta">
-      <button class="btn btn-primary" onclick="openLogin()">Enter the Studio</button>
-      <a href="#cats"><button class="btn btn-ghost">Explore Collections</button></a>
+  <div class="container">
+    <div class="hero">
+      <div class="brand"><span class="mark">A</span>Aphrodite Dress</div>
+      <h1>Sign in to the CRM</h1>
+      <p class="lead">Use your account to continue. Only the login page is exposed for this demo, with role-based access for admin users.</p>
     </div>
+    <form onsubmit="event.preventDefault(); doLogin();">
+      <div class="field"><label for="u">Username</label><input id="u" autocomplete="username" placeholder="admin"></div>
+      <div class="field"><label for="p">Password</label><input id="p" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <div class="err" id="err"></div>
+      <button type="submit">Sign In</button>
+      <div class="hint"><strong>Demo credentials</strong><br>Super Admin: <code>superadmin</code> / <code>superadmin1234</code><br>Admin: <code>admin</code> / <code>admin1234</code></div>
+    </form>
   </div>
-  <div class="visual reveal in">
-    <div class="card-img c1"></div>
-    <div class="card-img c2"></div>
-    <div class="card-img c3"></div>
-    <div class="badge b-love"><span class="serif">Adored by</span>240+ boutiques <span class="heart">♥</span></div>
-    <div class="badge b-new"><span class="serif">New Season</span>Summer '26</div>
-  </div>
-</header>
-
-<div class="features reveal">
-  <div class="feat"><span class="ic">🚚</span><div><b>Free Shipping</b><small>On orders over $750</small></div></div>
-  <div class="feat"><span class="ic">↺</span><div><b>Easy Returns</b><small>30-day return policy</small></div></div>
-  <div class="feat"><span class="ic">🔒</span><div><b>Secure Payment</b><small>100% secure checkout</small></div></div>
-  <div class="feat"><span class="ic">✦</span><div><b>Couture Quality</b><small>Crafted with love</small></div></div>
-</div>
-
-<section class="block" id="cats">
-  <div class="head reveal"><div><h2>Shop by Category</h2><p>Every silhouette, made to be loved.</p></div><a class="viewall">View all →</a></div>
-  <div class="cats">
-    <div class="cat reveal"><div class="circle" style="background:url('https://images.unsplash.com/photo-1774976626858-75cf588233f0?w=500&q=80&auto=format&fit=crop') center/cover,linear-gradient(150deg,#F43F5E,#EC4899)"></div><b>Evening</b></div>
-    <div class="cat reveal"><div class="circle" style="background:url('https://images.unsplash.com/photo-1746816884746-d983fc68d64c?w=500&q=80&auto=format&fit=crop') center/cover,linear-gradient(150deg,#EC4899,#A855F7)"></div><b>Casual</b></div>
-    <div class="cat reveal"><div class="circle" style="background:url('https://images.unsplash.com/photo-1675881149208-ac7db8cf2785?w=500&q=80&auto=format&fit=crop') center/cover,linear-gradient(150deg,#A855F7,#8B5CF6)"></div><b>Wedding</b></div>
-    <div class="cat reveal"><div class="circle" style="background:url('https://images.unsplash.com/photo-1675294292199-aac27f952585?w=500&q=80&auto=format&fit=crop') center/cover,linear-gradient(150deg,#8B5CF6,#F472B6)"></div><b>Luxury</b></div>
-    <div class="cat reveal"><div class="circle" style="background:url('https://images.unsplash.com/photo-1624140323078-cacb57df7884?w=500&q=80&auto=format&fit=crop') center/cover,linear-gradient(150deg,#FB7185,#D946EF)"></div><b>Sale</b></div>
-  </div>
-</section>
-
-<section class="block" id="new" style="padding-top:0">
-  <div class="head reveal"><div><h2>New Arrivals</h2><p>Fresh styles. Just in.</p></div><a class="viewall">View all →</a></div>
-  <div class="grid" id="prodGrid"></div>
-</section>
-
-<section class="block" id="promo">
-  <div class="promos">
-    <div class="promo p1 reveal"><h3>Boutiques get<br>15% off</h3><p>Verify your boutique status and unlock wholesale pricing on every collection.</p><button class="btn" onclick="openLogin()">Get Access</button></div>
-    <div class="promo p2 reveal"><h3>New Season<br>New Love</h3><p>Discover the Summer '26 edit — curated for the customers who fall first.</p><button class="btn">Shop Now</button></div>
-  </div>
-</section>
-
-<footer>
-  <div class="f-top">
-    <div class="f-brand"><div class="serif">Aphrodite<i> Dress</i></div><p>Wholesale couture, designed so everyone falls in love.</p></div>
-    <div class="values">
-      <div><b>Sustainable Fabrics</b><small>Better for you & the planet</small></div>
-      <div><b>Ethical Production</b><small>Made with care & respect</small></div>
-      <div><b>Boutique Focused</b><small>Fashion that gives back</small></div>
-    </div>
-  </div>
-  <div class="copy"><span>© 2026 Aphrodite Dress. All rights reserved.</span><span>Designed so everyone falls in love ♥</span></div>
-</footer>
-
-<!-- login modal -->
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <button class="close-x" onclick="closeLogin()">×</button>
-    <div class="mark">A</div>
-    <h3>Welcome back</h3>
-    <p class="sub">Sign in to the Aphrodite Dress studio</p>
-    <div class="field"><label>Username</label><input id="u" placeholder="admin" autocomplete="username"></div>
-    <div class="field"><label>Password</label><input id="p" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-    <div class="err" id="err"></div>
-    <button class="btn btn-primary" onclick="doLogin()">Sign In →</button>
-    <div class="hint">Demo login — username <code>admin</code> · password <code>admin1234</code></div>
-  </div>
-</div>
-
 <script>
-// product placeholders (the landing is a marketing page; real arrivals could be fed from /api/products)
-const arrivals=[
-  {n:"Aurora Gown",c:"Evening",p:148,a:"url('https://images.unsplash.com/photo-1774976626858-75cf588233f0?w=600&q=80&auto=format&fit=crop') center/cover,linear-gradient(160deg,#F43F5E,#A855F7)",t:"New"},
-  {n:"Seraphine Slip",c:"Luxury",p:212,a:"url('https://images.unsplash.com/photo-1675294292199-aac27f952585?w=600&q=80&auto=format&fit=crop') center/cover,linear-gradient(160deg,#EC4899,#8B5CF6)",t:"New"},
-  {n:"Celeste A-Line",c:"Wedding",p:286,a:"url('https://images.unsplash.com/photo-1675881149208-ac7db8cf2785?w=600&q=80&auto=format&fit=crop') center/cover,linear-gradient(160deg,#C084FC,#F472B6)",t:"Bridal"},
-  {n:"Marguerite Midi",c:"Casual",p:64,a:"url('https://images.unsplash.com/photo-1746816884746-d983fc68d64c?w=600&q=80&auto=format&fit=crop') center/cover,linear-gradient(160deg,#FDA4AF,#D946EF)",t:"New"},
-  {n:"Velvet Ballgown",c:"Evening",p:240,a:"url('https://images.unsplash.com/photo-1624140323078-cacb57df7884?w=600&q=80&auto=format&fit=crop') center/cover,linear-gradient(160deg,#9333EA,#F43F5E)",t:"Trending"},
-  {n:"Ivory Sheath",c:"Wedding",p:198,a:"url('https://images.unsplash.com/photo-1675881149208-ac7db8cf2785?w=600&q=80&auto=format&fit=crop') center/cover,linear-gradient(160deg,#DDD6FE,#F9A8D4)",t:"New"},
-  {n:"Rosé Wrap",c:"Casual",p:58,a:"url('https://images.unsplash.com/photo-1746816884746-d983fc68d64c?w=600&q=80&auto=format&fit=crop') center/cover,linear-gradient(160deg,#FB7185,#A855F7)",t:"Sale"},
-  {n:"Divine Maxi",c:"Luxury",p:324,a:"url('https://i.pinimg.com/control1/1200x/93/c6/e2/93c6e29dabfb4e6aac8e7e45566b284d.jpg') center/cover,linear-gradient(160deg,#8B5CF6,#EC4899)",t:"New"},
-];
-document.getElementById('prodGrid').innerHTML=arrivals.map(x=>`
-  <div class="prod reveal">
-    <div class="ph" style="background:${x.a}"><span class="tag">${x.t}</span><span class="like">♡</span>✦</div>
-    <div class="info"><span class="cat-l">${x.c}</span><b>${x.n}</b><div class="price">$${x.p}.00</div></div>
-  </div>`).join('');
-
-// login
-function openLogin(){document.getElementById('overlay').classList.add('show');document.getElementById('u').focus()}
-function closeLogin(){document.getElementById('overlay').classList.remove('show')}
-document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeLogin()});
-async function doLogin(){
-  const u=document.getElementById('u').value.trim(), p=document.getElementById('p').value, err=document.getElementById('err');
-  err.textContent='';
-  try{
-    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
-    if(r.ok){location.href='/dashboard';return}
-    const j=await r.json(); err.textContent=j.error||'Invalid login';
-  }catch(e){
-    // offline / static preview fallback
-    if(u==='admin'&&p==='admin1234'){location.href=(location.protocol==='file:'?'dashboard.html':'/dashboard');}
-    else err.textContent='Invalid username or password';
+  async function doLogin(){
+    const u=document.getElementById('u').value.trim();
+    const p=document.getElementById('p').value;
+    const err=document.getElementById('err');
+    err.textContent='';
+    if(!u||!p){ err.textContent='Username and password are required.'; return; }
+    try{
+      const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+      if(r.ok){ location.href='/dashboard'; return; }
+      const j=await r.json(); err.textContent=j.error||'Invalid username or password';
+    }catch(e){
+      if((u==='admin'&&p==='admin1234')||(u==='superadmin'&&p==='superadmin1234')){
+        const demoUser = {
+          name: u === 'superadmin' ? 'Aphrodite Super Admin' : 'Aphrodite Admin',
+          role: u === 'superadmin' ? 'Super Admin' : 'Admin'
+        };
+        localStorage.setItem('demoAuth', JSON.stringify(demoUser));
+        location.href = 'dashboard.html';
+      } else {
+        err.textContent='Invalid username or password';
+      }
+    }
   }
-}
-document.getElementById('p').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
-
-// scroll reveal
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});
-document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4*70)+'ms';io.observe(el)});
+  document.getElementById('p').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 </script>
 </body>
 </html>

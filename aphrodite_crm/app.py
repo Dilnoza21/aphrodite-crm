@@ -7,9 +7,11 @@ Login:  username = admin   password = admin1234
 import sqlite3, hashlib, os, datetime, random
 from functools import wraps
 from flask import Flask, jsonify, request, session, send_from_directory, redirect
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = "aphrodite-dress-secret-key-change-in-production"
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 DB = os.path.join(os.path.dirname(__file__), "aphrodite.db")
 
 
@@ -40,6 +42,20 @@ def login_required(f):
             return jsonify({"error": "unauthorized"}), 401
         return f(*a, **k)
     return wrap
+
+
+def role_required(*roles):
+    def decorator(f):
+        @wraps(f)
+        def wrap(*a, **k):
+            if not session.get("user"):
+                return jsonify({"error": "unauthorized"}), 401
+            u = one("SELECT role FROM users WHERE username=?", (session["user"],))
+            if not u or u["role"] not in roles:
+                return jsonify({"error": "forbidden"}), 403
+            return f(*a, **k)
+        return wrap
+    return decorator
 
 
 # ---------------- pages ----------------
@@ -98,11 +114,21 @@ def api_dashboard():
                      FROM orders o JOIN customers c ON c.id=o.customer_id
                      ORDER BY o.date DESC, o.id DESC LIMIT 7""")
     status_counts = rows("SELECT status, COUNT(*) n FROM orders GROUP BY status")
-    return jsonify({
+    result = {
         "kpi": {"revenue": revenue, "orders": orders, "customers": customers, "pending": pending},
         "monthly": monthly, "by_category": by_cat, "top_products": top,
         "recent_orders": recent, "status_counts": status_counts
-    })
+    }
+    u = one("SELECT role FROM users WHERE username=?", (session["user"],))
+    if u and u["role"] == "Super Admin":
+        cost = one("""SELECT COALESCE(SUM(oi.qty * p.cost),0) v
+                        FROM order_items oi
+                        JOIN products p ON p.id=oi.product_id
+                        JOIN orders o ON o.id=oi.order_id
+                        WHERE o.status!='Cancelled'""")["v"]
+        profit = round(revenue - cost, 2)
+        result["profit_loss"] = {"cost": cost, "profit": profit, "label": "Profit" if profit >= 0 else "Loss"}
+    return jsonify(result)
 
 
 # ---------------- list endpoints ----------------
@@ -147,7 +173,7 @@ def api_suppliers():
 
 
 @app.route("/api/employees")
-@login_required
+@role_required("Super Admin")
 def api_employees():
     return jsonify(rows("SELECT * FROM employees ORDER BY id"))
 
@@ -159,7 +185,7 @@ def api_support():
 
 
 @app.route("/api/notifications")
-@login_required
+@role_required("Super Admin")
 def api_notifications():
     return jsonify(rows("SELECT * FROM notifications ORDER BY created_at DESC"))
 
@@ -196,9 +222,19 @@ ENTITIES = {
 }
 
 
+def ensure_entity_access(entity):
+    if entity == "employees":
+        u = one("SELECT role FROM users WHERE username=?", (session["user"],))
+        if not u or u["role"] != "Super Admin":
+            return False
+    return True
+
+
 @app.route("/api/<entity>", methods=["POST"])
 @login_required
 def api_create(entity):
+    if not ensure_entity_access(entity):
+        return jsonify({"error": "forbidden"}), 403
     cfg = ENTITIES.get(entity)
     if not cfg:
         return jsonify({"error": "unknown entity"}), 404
@@ -218,6 +254,8 @@ def api_create(entity):
 @app.route("/api/<entity>/<int:rid>", methods=["PUT"])
 @login_required
 def api_update(entity, rid):
+    if not ensure_entity_access(entity):
+        return jsonify({"error": "forbidden"}), 403
     cfg = ENTITIES.get(entity)
     if not cfg:
         return jsonify({"error": "unknown entity"}), 404
@@ -236,6 +274,8 @@ def api_update(entity, rid):
 @app.route("/api/<entity>/<int:rid>", methods=["DELETE"])
 @login_required
 def api_delete(entity, rid):
+    if not ensure_entity_access(entity):
+        return jsonify({"error": "forbidden"}), 403
     cfg = ENTITIES.get(entity)
     if not cfg:
         return jsonify({"error": "unknown entity"}), 404

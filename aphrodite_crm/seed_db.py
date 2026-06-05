@@ -50,11 +50,13 @@ CREATE TABLE notifications (id INTEGER PRIMARY KEY, type TEXT, message TEXT, cre
 
 # ---------- users ----------
 c.execute("INSERT INTO users(username,password,role,name) VALUES(?,?,?,?)",
-          ("admin", h("admin1234"), "Admin", "Aphrodite Admin"))
+            ("superadmin", h("superadmin1234"), "Super Admin", "Aphrodite Super Admin"))
+c.execute("INSERT INTO users(username,password,role,name) VALUES(?,?,?,?)",
+            ("admin", h("admin1234"), "Admin", "Aphrodite Admin"))
 
 # ---------- products ----------
 adjectives = ["Aurora","Velvet","Celeste","Seraphine","Mirage","Lumière","Étoile","Reverie","Allure",
-              "Opaline","Marguerite","Bijou","Soleil","Noir","Ivory","Rosé","Camélia","Divine","Eden","Belle"]
+                "Opaline","Marguerite","Bijou","Soleil","Noir","Ivory","Rosé","Camélia","Divine","Eden","Belle"]
 nouns = ["Gown","Slip Dress","Wrap Dress","Maxi","Midi","A-Line","Sheath","Ballgown","Tea Dress","Shift"]
 subcats = {"Evening":["Gown","Ballgown","Slip Dress"], "Casual":["Wrap Dress","Tea Dress","Shift","Midi"],
            "Wedding":["Ballgown","A-Line","Sheath","Maxi"], "Luxury":["Gown","Sheath","Maxi","Midi"]}
