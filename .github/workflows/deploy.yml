@@ -12,7 +12,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2 via SSH
+      - name: Copy files to server via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "aphrodite_crm/"
+          target: "/var/www/aphrodite-crm/"
+          strip_components: 0
+
+      - name: Rebuild and restart Docker container
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -20,19 +30,20 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            echo "=== Updating code ==="
-            cd /var/www/aphrodite-crm
-            git fetch origin main
-            git reset --hard FETCH_HEAD
-            echo "=== Current commit ==="
-            git log --oneline -3
-            echo "=== Rebuilding Docker image ==="
-            cd aphrodite_crm
+            cd /var/www/aphrodite-crm/aphrodite_crm
+
+            echo "=== Files on server ==="
+            ls -la
+
+            echo "=== Rebuilding Docker ==="
             docker compose down
             docker compose build --no-cache
             docker compose up -d
 
-            # Configure system nginx as reverse proxy to Flask on port 5000
+            echo "=== Container status ==="
+            docker compose ps
+
+            echo "=== Configuring system nginx ==="
             sudo tee /etc/nginx/sites-available/aphrodite-crm > /dev/null <<'NGINXEOF'
             server {
                 listen 80;
@@ -52,9 +63,4 @@ jobs:
             sudo rm -f /etc/nginx/sites-enabled/default
             sudo nginx -t && sudo systemctl reload nginx
 
-            # Show status
-            echo "=== Container status ==="
-            docker compose ps
-            echo "=== Web logs ==="
-            docker compose logs --tail=20 web
-            echo "Deployed at $(date)"
+            echo "=== Done at $(date) ==="
