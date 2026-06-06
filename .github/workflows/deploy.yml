@@ -9,20 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Copy files to server via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "aphrodite_crm/"
-          target: "/var/www/aphrodite-crm/"
-          strip_components: 0
-
-      - name: Rebuild and restart Docker container
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -30,12 +17,15 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd /var/www/aphrodite-crm/aphrodite_crm
 
-            echo "=== Files on server ==="
-            ls -la
+            echo "=== Pulling latest code ==="
+            cd /var/www/aphrodite-crm
+            git fetch origin main
+            git reset --hard FETCH_HEAD
+            echo "Now at: $(git log --oneline -1)"
 
             echo "=== Rebuilding Docker ==="
+            cd aphrodite_crm
             docker compose down
             docker compose build --no-cache
             docker compose up -d
@@ -43,7 +33,7 @@ jobs:
             echo "=== Container status ==="
             docker compose ps
 
-            echo "=== Configuring system nginx ==="
+            echo "=== Configuring nginx ==="
             sudo tee /etc/nginx/sites-available/aphrodite-crm > /dev/null <<'NGINXEOF'
             server {
                 listen 80;
