@@ -444,7 +444,7 @@ function renderDashboard(C){
   api('dashboard').then(d=>{
     const k=d.kpi;
     C.innerHTML=`
-    <div class="page-head"><h1>Hi, ${USER_ROLE} 👋</h1><p>Here's what's happening at Aphrodite Dress this month.</p></div>
+    <div class="page-head"><h1>Welcome back, ${USER_ROLE} 👋</h1><p>Here's what's happening at Aphrodite Dress this month.</p></div>
     <div class="kpis">
       <div class="kpi feature"><div class="lbl"><span class="ic">$</span>Total Revenue</div><div class="val">${money(k.revenue)}</div><div class="chg up">↑ 12.4% vs last month</div></div>
       <div class="kpi"><div class="lbl"><span class="ic">📦</span>Total Orders</div><div class="val">${k.orders}</div><div class="chg up">↑ 7.2%</div></div>
